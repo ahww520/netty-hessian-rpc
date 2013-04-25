@@ -24,16 +24,17 @@ public class ServerStart {
 	public static void main(String[] args) throws Exception {
 		int port = 9991;
 		final ExecutorService threadPool = Executors.newFixedThreadPool(100);
-		
+
 		ServerBootstrap b = new ServerBootstrap();
 		try {
-			b.group(new NioEventLoopGroup(2), new NioEventLoopGroup(100))
+			b.group(new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2 + 2), new NioEventLoopGroup(100))
 			.channel(NioServerSocketChannel.class)
 			.localAddress(new InetSocketAddress(port))
 			.childOption(ChannelOption.TCP_NODELAY, true)
 			.childOption(ChannelOption.SO_KEEPALIVE, true)
 			.childOption(ChannelOption.SO_LINGER, 1)
-			.handler(new LoggingHandler(LogLevel.INFO)).childHandler(new ChannelInitializer<SocketChannel>() {
+			.handler(new LoggingHandler(LogLevel.INFO))
+			.childHandler(new ChannelInitializer<SocketChannel>() {
 				@Override
 				public void initChannel(SocketChannel ch) throws Exception {
 					ChannelPipeline pipeline = ch.pipeline();
@@ -46,7 +47,7 @@ public class ServerStart {
 					// and then business logic.
 					// Please note we create a handler for every new channel
 					// because it has stateful properties.
-					pipeline.addLast("handler", new ServerChannelHandler(new BeanRegisterImpl(),threadPool));
+					pipeline.addLast("handler", new ServerChannelHandler(new BeanRegisterImpl(), threadPool));
 				}
 			});
 			b.bind().sync().channel().closeFuture().sync();
