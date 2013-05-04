@@ -2,6 +2,7 @@ package org.sunney.rpc.common.client;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.sunney.rpc.bean.RpcRequest;
@@ -13,7 +14,7 @@ public abstract class AbstractClient implements Client {
 	protected String host;
 	protected int port;
 	protected String beanName;
-	private ConcurrentHashMap<Integer, ArrayBlockingQueue<RpcResponse>> responseMap = new ConcurrentHashMap<Integer, ArrayBlockingQueue<RpcResponse>>();
+	protected ConcurrentHashMap<Integer, ArrayBlockingQueue<RpcResponse>> responseMap = new ConcurrentHashMap<Integer, ArrayBlockingQueue<RpcResponse>>();
 
 	// private RpcResponse response;
 
@@ -30,19 +31,27 @@ public abstract class AbstractClient implements Client {
 
 	@Override
 	public void setResponse(Integer requestIndex, RpcResponse response) {
-		ArrayBlockingQueue<RpcResponse> responseQueue = new ArrayBlockingQueue<RpcResponse>(
-				1);
+		ArrayBlockingQueue<RpcResponse> responseQueue = responseMap.get(requestIndex);
+		if(responseQueue == null){
+			responseQueue = new ArrayBlockingQueue<RpcResponse>(1);
+		}
 		responseQueue.add(response);
+		
 		responseMap.putIfAbsent(requestIndex, responseQueue);
 	}
 
 	@Override
 	public RpcResponse getResponse(Integer requestIndex) {
-		ArrayBlockingQueue<RpcResponse> responseQueue = responseMap
-				.get(requestIndex);
+		ArrayBlockingQueue<RpcResponse> responseQueue = responseMap.get(requestIndex);
 		if (responseQueue != null) {
-			return responseQueue.poll();
+			try {
+				RpcResponse response = responseQueue.poll(30*1000,TimeUnit.MILLISECONDS);
+				responseMap.remove(requestIndex);
+				return response;
+			} catch (InterruptedException e) {
+			}
 		}
+		responseMap.remove(requestIndex);
 		return null;
 	}
 

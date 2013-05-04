@@ -11,10 +11,12 @@ import io.netty.channel.socket.oio.OioEventLoopGroup;
 import io.netty.channel.socket.oio.OioSocketChannel;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sunney.rpc.bean.RpcRequest;
+import org.sunney.rpc.bean.RpcResponse;
 import org.sunney.rpc.codec.RpcDecoder;
 import org.sunney.rpc.codec.RpcEncoder;
 import org.sunney.rpc.common.client.AbstractClient;
@@ -38,6 +40,10 @@ public class NettyClient extends AbstractClient {
 	@Override
 	public void sendRequest(RpcRequest request) {
 		logger.info("建立链接", request);
+
+		ArrayBlockingQueue<RpcResponse> responseQueue = new ArrayBlockingQueue<RpcResponse>(1);
+		responseMap.put(request.getMagic(), responseQueue);
+		
 		ChannelFuture cf = connnect(request);
 		cf.addListener(new ChannelFutureListener() {
 			@Override

@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
 import org.sunney.rpc.bean.RpcRequest;
-import org.sunney.rpc.client.socket.SocketClient;
+import org.sunney.rpc.client.netty.NettyClient;
 import org.sunney.rpc.common.client.Client;
 import org.sunney.rpc.common.common.NetConfig;
 import org.sunney.rpc.common.common.TransportURL;
@@ -22,8 +22,8 @@ public class BeanProxy implements InvocationHandler {
 	private MethodKey methodKey;
 
 	public BeanProxy(TransportURL u, NetConfig netConfig) {
-		// this.client = new NettyClient(u);
-		this.client = new SocketClient(u, netConfig);
+		this.client = new NettyClient(u);
+//		this.client = new SocketClient(u, netConfig);
 		methodKey = new MethodKeyImpl();
 	}
 
