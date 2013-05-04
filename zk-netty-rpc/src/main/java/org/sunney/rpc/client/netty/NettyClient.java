@@ -21,14 +21,15 @@ import org.sunney.rpc.common.client.AbstractClient;
 import org.sunney.rpc.common.client.Client;
 import org.sunney.rpc.common.common.End;
 import org.sunney.rpc.common.common.TransportURL;
+
 /**
  * Netty实现的客户端
+ * 
  * @author sunney
- *(性能太差 不再使用！)
  */
-@Deprecated
 public class NettyClient extends AbstractClient {
-	private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(NettyClient.class);
 
 	public NettyClient(TransportURL url) {
 		super(url);
@@ -40,11 +41,12 @@ public class NettyClient extends AbstractClient {
 		ChannelFuture cf = connnect(request);
 		cf.addListener(new ChannelFutureListener() {
 			@Override
-			public void operationComplete(ChannelFuture future) throws Exception {
-				if(future.isSuccess()){
+			public void operationComplete(ChannelFuture future)
+					throws Exception {
+				if (future.isSuccess()) {
 					return;
-				}else{
-					if(future.channel().isActive()){
+				} else {
+					if (future.channel().isActive()) {
 						future.channel().close();
 					}
 				}
@@ -58,19 +60,26 @@ public class NettyClient extends AbstractClient {
 		Bootstrap b = new Bootstrap();
 		try {
 			b.group(new OioEventLoopGroup()).channel(OioSocketChannel.class)
-			.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000 * 10)
-			.remoteAddress(new InetSocketAddress(host, port))
-			.handler(new ChannelInitializer<SocketChannel>() {
-				@Override
-				public void initChannel(SocketChannel ch) throws Exception {
-					ChannelPipeline pipeline = ch.pipeline();
-					pipeline.addLast("encoder", new RpcEncoder(End.CLIENT));
-					pipeline.addLast("decoder", new RpcDecoder(End.CLIENT));
-					pipeline.addLast("handler", new ClientChannelHandler(client, frequest));
-				}
-			});
+					.option(ChannelOption.TCP_NODELAY, true)
+					.option(ChannelOption.SO_REUSEADDR, true)
+					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000 * 10)
+					.remoteAddress(new InetSocketAddress(host, port))
+					.handler(new ChannelInitializer<SocketChannel>() {
+						@Override
+						public void initChannel(SocketChannel ch)
+								throws Exception {
+							ChannelPipeline pipeline = ch.pipeline();
+							pipeline.addLast("encoder", new RpcEncoder(
+									End.CLIENT));
+							pipeline.addLast("decoder", new RpcDecoder(
+									End.CLIENT));
+							pipeline.addLast("handler",
+									new ClientChannelHandler(client, frequest));
+						}
+					});
 
 			ChannelFuture future = b.connect().syncUninterruptibly();
+			future.awaitUninterruptibly(1000 * 10);
 			return future;
 		} catch (Exception e) {
 			e.printStackTrace();

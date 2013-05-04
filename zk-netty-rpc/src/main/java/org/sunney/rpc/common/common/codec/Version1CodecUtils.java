@@ -15,7 +15,7 @@ import org.sunney.rpc.serialize.Serializer;
 public class Version1CodecUtils {
 	private static Charset charset = Charset.forName(CharsetName.ASCII.charsetName());
 	private static Serializer serializer = new HessianSerializer();
-	public final static int REQUEST_HEAD_SIZE = 13;
+	public final static int REQUEST_HEAD_SIZE = 16;//
 	public final static int RESPONSE_HEAD_SIZE = 4;
 	/**
 	 * 序列化 RpcRequest -> ByteBuf （客户端调用）
@@ -27,7 +27,7 @@ public class Version1CodecUtils {
 	public static ByteBuf rpcRequestToByteBuf(RpcRequest message) throws IOException {
 		int byteLength = REQUEST_HEAD_SIZE;
 
-		byte magic = message.getMagic();
+		int magic = message.getMagic();
 
 		byte[] beanNameBytes = message.getBeanName().getBytes(charset);
 		byteLength += beanNameBytes.length;
@@ -38,7 +38,7 @@ public class Version1CodecUtils {
 		byte[] argsBytes = serializer.enSerialize(message.getArgs());
 		byteLength += argsBytes.length;
 		ByteBuf byteBuf = Unpooled.buffer(byteLength);
-		byteBuf.writeByte(magic);
+		byteBuf.writeInt(magic);
 
 		byteBuf.writeInt(beanNameBytes.length);
 		byteBuf.writeBytes(beanNameBytes);
@@ -61,7 +61,7 @@ public class Version1CodecUtils {
 	 */
 	public static RpcMessage byteBufToRpcRequest(ByteBuf buff) throws IOException {
 		RpcRequest request = new RpcRequest();
-		byte magic = buff.readByte();
+		int magic = buff.readInt();
 		request.setMagic(magic);
 
 		int beanNameLength = buff.readInt();

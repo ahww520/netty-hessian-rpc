@@ -11,12 +11,12 @@ import org.sunney.rpc.common.client.Client;
 
 /**
  * 客户端Handler
- * (性能太差 不再使用！)
+ * 
  * @author sunney
  * 
  */
-@Deprecated
-public class ClientChannelHandler extends ChannelInboundMessageHandlerAdapter<RpcResponse> {
+public class ClientChannelHandler extends
+		ChannelInboundMessageHandlerAdapter<RpcResponse> {
 	private Client client;
 	private RpcRequest request;
 	private Logger logger = LoggerFactory.getLogger(getClass());
@@ -32,20 +32,21 @@ public class ClientChannelHandler extends ChannelInboundMessageHandlerAdapter<Rp
 
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		logger.info("请求实体：{}",request);
+		logger.info("请求实体：{}", request);
 		ctx.write(request);
 	}
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, RpcResponse msg) throws Exception {
+	public void messageReceived(ChannelHandlerContext ctx, RpcResponse msg)
+			throws Exception {
 		logger.info("服务器返回数据：{}", msg);
-		client.setResponse(msg);
+		client.setResponse(request.getMagic(), msg);
 	}
 
 	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+			throws Exception {
 		ctx.close();
 	}
-	
-	
+
 }

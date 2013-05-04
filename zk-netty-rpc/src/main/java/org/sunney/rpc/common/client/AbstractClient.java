@@ -1,17 +1,21 @@
 package org.sunney.rpc.common.client;
 
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.sunney.rpc.bean.RpcRequest;
 import org.sunney.rpc.bean.RpcResponse;
 import org.sunney.rpc.common.common.TransportURL;
 
 public abstract class AbstractClient implements Client {
+	private AtomicInteger rquestId = new AtomicInteger(0);
 	protected String host;
 	protected int port;
 	protected String beanName;
+	private ConcurrentHashMap<Integer, ArrayBlockingQueue<RpcResponse>> responseMap = new ConcurrentHashMap<Integer, ArrayBlockingQueue<RpcResponse>>();
 
-	private RpcResponse response;
+	// private RpcResponse response;
 
 	public AbstractClient(TransportURL url) {
 		this.host = url.getHost();
@@ -25,39 +29,27 @@ public abstract class AbstractClient implements Client {
 	}
 
 	@Override
-	public void setResponse(RpcResponse response) {
-		this.response = response;
+	public void setResponse(Integer requestIndex, RpcResponse response) {
+		ArrayBlockingQueue<RpcResponse> responseQueue = new ArrayBlockingQueue<RpcResponse>(
+				1);
+		responseQueue.add(response);
+		responseMap.putIfAbsent(requestIndex, responseQueue);
 	}
 
 	@Override
-	public RpcResponse getResponse() {
-		if (this.response == null) {
-			return null;
+	public RpcResponse getResponse(Integer requestIndex) {
+		ArrayBlockingQueue<RpcResponse> responseQueue = responseMap
+				.get(requestIndex);
+		if (responseQueue != null) {
+			return responseQueue.poll();
 		}
-		return this.response;
+		return null;
 	}
 
 	public Object invoke(RpcRequest request) {
+		int rid = rquestId.getAndDecrement();
+		request.setMagic(rid);
 		sendRequest(request);
-		return getResponse().getResponse();
-	}
-
-	/**
-	 * 已经废弃 性能太差
-	 */
-	@Override
-	@Deprecated
-	public void await(long timeout) throws TimeoutException {
-		long currentMilli = System.currentTimeMillis();
-		while (response == null) {
-			if (System.currentTimeMillis() - currentMilli > timeout) {
-				throw new TimeoutException("等待超时!");
-			}
-			try {
-				Thread.sleep(0);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+		return getResponse(rid).getResponse();
 	}
 }

@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.concurrent.TimeoutException;
 
 import org.sunney.rpc.bean.RpcRequest;
 import org.sunney.rpc.bean.RpcResponse;
@@ -18,10 +17,12 @@ import org.sunney.rpc.common.common.End;
 import org.sunney.rpc.common.common.NetConfig;
 import org.sunney.rpc.common.common.TransportURL;
 import org.sunney.rpc.common.common.codec.RpcProtocol;
+
 /**
  * Socket请求处理
+ * 
  * @author sunney
- *
+ * 
  */
 public class SocketClient extends AbstractClient {
 	private NetConfig netConfig;
@@ -34,7 +35,7 @@ public class SocketClient extends AbstractClient {
 		this(url);
 		this.netConfig = netConfig;
 	}
-	
+
 	/**
 	 * 向服务端发送请求
 	 */
@@ -56,13 +57,13 @@ public class SocketClient extends AbstractClient {
 			ByteBuf buff = Unpooled.buffer(rbytes.length);
 			buff.writeBytes(rbytes);
 			RpcResponse response = (RpcResponse) RpcProtocol.VERSION_1.decode(End.CLIENT, buff);
-			this.setResponse(response);
+			this.setResponse(request.getMagic(), response);
 			buff.clear();
 		} catch (Exception e) {
-			this.setResponse(new RpcResponse());
-		}finally {
+			this.setResponse(request.getMagic(), new RpcResponse());
+		} finally {
 			/**
-			 * byteArrayOutputStream 不需要显示关闭 
+			 * byteArrayOutputStream 不需要显示关闭
 			 */
 			try {
 				if (inputStream != null)
@@ -77,11 +78,6 @@ public class SocketClient extends AbstractClient {
 			}
 		}
 	}
-	
-	@Override
-	public void await(long timeout) throws TimeoutException {
-		// do nothing
-	}
 
 	private Socket doSendRequest(RpcRequest request) throws Exception {
 		Socket socket = createSocket(host, port);
@@ -91,11 +87,10 @@ public class SocketClient extends AbstractClient {
 		buff.clear();
 		return socket;
 	}
-	
+
 	/**
-	 * 使用Socket进行短连接进行网络IO 对资源消耗很小 所以没有做socket池化
-	 * (但我会考虑进行池化进行优化)
-	 * 创建Socket
+	 * 使用Socket进行短连接进行网络IO 对资源消耗很小 所以没有做socket池化 (但我会考虑进行池化进行优化) 创建Socket
+	 * 
 	 * @param host
 	 * @param port
 	 * @return
@@ -109,7 +104,8 @@ public class SocketClient extends AbstractClient {
 		socket.setSoLinger(netConfig.getSoLinger() > 0, netConfig.getSoLinger());
 		socket.setSendBufferSize(netConfig.getSendBufferSize());
 		socket.setReceiveBufferSize(netConfig.getReceiveBufferSize());
-		socket.connect(new InetSocketAddress(host, port), netConfig.getConnectTimeout() * 1000);
+		socket.connect(new InetSocketAddress(host, port),
+				netConfig.getConnectTimeout() * 1000);
 		return socket;
 	}
 
