@@ -22,7 +22,7 @@ public class CodecTest {
 	@Test
 	public void testEncodeAndDecode() throws Exception {
 		int x = 0;
-		while(x < 1000*10){
+		while(x < 1){
 			x++;
 			RpcRequest rpcRequest = genRpcRequest();
 			rpcRequest.setArgs(new Object[]{10,DataGener.genData()});
@@ -44,8 +44,18 @@ public class CodecTest {
 		System.out.println(response);
 		ByteBuf buff = RpcProtocol.VERSION_1.encode(End.SERVER, response);
 		System.out.println("Buff: " + buff);
-		RpcMessage newResponse = RpcProtocol.VERSION_1.decode(End.SERVER, buff);
+		RpcMessage newResponse = RpcProtocol.VERSION_1.decode(End.CLIENT, buff);
 		System.out.println(newResponse);
+	}
+	
+	@Test
+	public void testClientCodec() throws Exception{
+		RpcRequest request = genRpcRequest();
+		System.out.println(request);
+		ByteBuf buff = RpcProtocol.VERSION_1.encode(End.CLIENT, request);
+		System.out.println(buff);
+		RpcMessage newRequest = RpcProtocol.VERSION_1.decode(End.SERVER, buff);
+		System.out.println(newRequest);
 	}
 
 	private RpcRequest genRpcRequest() {
