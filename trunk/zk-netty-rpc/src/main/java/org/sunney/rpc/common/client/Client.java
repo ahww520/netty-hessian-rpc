@@ -1,7 +1,5 @@
 package org.sunney.rpc.common.client;
 
-import java.util.concurrent.TimeoutException;
-
 import org.sunney.rpc.bean.RpcRequest;
 import org.sunney.rpc.bean.RpcResponse;
 
@@ -16,11 +14,9 @@ public interface Client {
 
 	void sendRequest(RpcRequest request);
 
-	void setResponse(RpcResponse response);
+	void setResponse(Integer requestIndex, RpcResponse response);
 
-	RpcResponse getResponse();
+	RpcResponse getResponse(Integer requestIndex);
 
 	String getBeanName();
-
-	void await(long timeout) throws TimeoutException;
 }

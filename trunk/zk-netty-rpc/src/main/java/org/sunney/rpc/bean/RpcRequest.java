@@ -1,7 +1,6 @@
 package org.sunney.rpc.bean;
 
 import java.util.Arrays;
-import java.util.Random;
 
 /**
  * 客户端请求信息包装类
@@ -11,14 +10,12 @@ import java.util.Random;
  */
 public class RpcRequest extends RpcMessage {
 	private static final long serialVersionUID = -9157514426825564946L;
-	private byte magic;// 魔法数，便于扩展使用
+	private int magic;// 请求ID
 	private String beanName;// 服务器端代理调用的Bean ID
 	private String methodKey;// 方法键值
 	private Object[] args;// 方法调用参数
 
 	public RpcRequest() {
-		Random rand = new Random(System.currentTimeMillis());
-		this.magic = (byte)rand.nextInt(128);
 	}
 
 	public RpcRequest(String beanName, String methodKey, Object[] args) {
@@ -28,11 +25,11 @@ public class RpcRequest extends RpcMessage {
 		this.args = args;
 	}
 
-	public byte getMagic() {
+	public int getMagic() {
 		return magic;
 	}
 
-	public void setMagic(byte magic) {
+	public void setMagic(int magic) {
 		this.magic = magic;
 	}
 
