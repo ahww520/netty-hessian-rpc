@@ -21,13 +21,32 @@ public class ClientTest {
 		long startMilli = System.currentTimeMillis();
 		int count = 0;
 		for (int i = 0; i < 1000 * 1000; i++) {
-			Hello hello = BeanProxyFactory.create(Hello.class, "//localhost:9991/hello", ClientTest.class.getClassLoader());
+			Hello hello = BeanProxyFactory
+					.create(Hello.class, "//localhost:9991/hello",
+							ClientTest.class.getClassLoader());
 			Data data = hello.say(DataGener.genData());
 			if (data != null) {
 				logger.info("{},实际返回的值：{}", count++, data);
 			}
 		}
 		long endMilli = System.currentTimeMillis();
-		logger.info("startMilli: {},endMilli: {}, (endMilli - startMilli)={}", new Long[] { startMilli, endMilli, (endMilli - startMilli) });
+		logger.info("startMilli: {},endMilli: {}, (endMilli - startMilli)={}",
+				new Long[] { startMilli, endMilli, (endMilli - startMilli) });
+	}
+
+	@Test
+	public void testNettyClient() {
+		long startMilli = System.currentTimeMillis();
+		
+		Hello hello = BeanProxyFactory.create(Hello.class,
+				"//localhost:9991/hello", ClientTest.class.getClassLoader());
+		for(int i=0;i<100;i++){
+			Data data = hello.say(DataGener.genData());
+			System.out.println(data);
+		}
+		
+		long endMilli = System.currentTimeMillis();
+		logger.info("startMilli: {},endMilli: {}, (endMilli - startMilli)={}",
+				new Long[] { startMilli, endMilli, (endMilli - startMilli) });
 	}
 }
