@@ -52,8 +52,9 @@ public class ServerStart {
 			});
 			b.bind().sync().channel().closeFuture().sync();
 		} finally {
-			// Shut down all event loops to terminate all threads.
-			b.shutdown();
+			if (b != null) {
+				b.shutdown();
+			}
 		}
 	}
 }
