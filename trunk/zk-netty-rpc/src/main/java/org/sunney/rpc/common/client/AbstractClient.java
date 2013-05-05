@@ -46,12 +46,12 @@ public abstract class AbstractClient implements Client {
 		if (responseQueue != null) {
 			try {
 				RpcResponse response = responseQueue.poll(30*1000,TimeUnit.MILLISECONDS);
-				responseMap.remove(requestIndex);
 				return response;
 			} catch (InterruptedException e) {
+			}finally{
+				responseMap.remove(requestIndex);
 			}
 		}
-		responseMap.remove(requestIndex);
 		return null;
 	}
 
