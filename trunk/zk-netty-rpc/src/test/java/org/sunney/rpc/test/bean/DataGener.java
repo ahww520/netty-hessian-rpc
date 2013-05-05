@@ -19,5 +19,9 @@ public class DataGener {
 		data.setMap(map);
 		return data;
 	}
+	
+	public static void main(String[] args) {
+		Data d = genData();
+	}
 
 }
